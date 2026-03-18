@@ -1,7 +1,6 @@
 name: Claude Code Agent
 
-# Handles @claude mentions in issues and PR comments.
-# Use this to ask Claude to plan, explain, or help with anything in the repo.
+# Responds to @claude mentions in issue and PR comments.
 
 on:
   issue_comment:
@@ -12,15 +11,48 @@ on:
 jobs:
   claude:
     name: Respond to @claude mention
-    if: |
-      contains(github.event.comment.body, '@claude')
+    if: contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
       issues: write
     steps:
-      - uses: anthropic/claude-code-action@beta
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 20
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Respond to comment
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          RESPONSE=$(claude -p "
+          You are the Claude Code agent for the FixedFlow project.
+          Read CLAUDE.md for full project context.
+
+          A user has mentioned you in a GitHub issue/PR comment.
+
+          Issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}
+          Issue description: ${ISSUE_BODY}
+
+          The comment mentioning you:
+          ${COMMENT_BODY}
+
+          Please respond helpfully. If they are asking you to plan an implementation,
+          provide a clear, specific plan. If they ask a question, answer it.
+          Keep your response concise and focused.
+          " --dangerously-skip-permissions --allowedTools "Read,Glob,Grep")
+
+          # Post response as a comment
+          gh issue comment "${ISSUE_NUMBER}" --repo "${REPO}" --body "${RESPONSE}"

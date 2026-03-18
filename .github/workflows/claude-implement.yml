@@ -1,7 +1,7 @@
 name: Claude Code — Implement
 
 # Triggered when the `agent:implement` label is added to an issue.
-# Claude Code will read the issue, plan an implementation, create a branch, and open a PR.
+# Claude Code reads the issue, creates a branch, implements the feature, and opens a PR.
 
 on:
   issues:
@@ -17,20 +17,56 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: anthropic/claude-code-action@beta
+      - uses: actions/checkout@v4
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: |
-            You have been assigned to implement GitHub issue #${{ github.event.issue.number }}.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-            Issue title: ${{ github.event.issue.title }}
-            Issue body:
-            ${{ github.event.issue.body }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-            Follow the instructions in CLAUDE.md closely:
-            - Create a branch named `feat/${{ github.event.issue.number }}-<short-slug>` or `fix/${{ github.event.issue.number }}-<short-slug>`
-            - Implement the feature or fix described in the issue
-            - Run `npm run check` and `npm run lint` before committing (install deps first if needed)
-            - Open a PR with a clear description referencing the issue (`Closes #${{ github.event.issue.number }}`)
-            - Keep the change focused — one issue, one PR
+      - name: Configure git
+        run: |
+          git config user.name "Claude Code Agent"
+          git config user.email "claude-agent@users.noreply.github.com"
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Implement issue
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          REPO: ${{ github.repository }}
+        run: |
+          claude -p "
+          You are the Claude Code agent for the FixedFlow project.
+          Start by reading CLAUDE.md and docs/architecture.md for full project context and conventions.
+
+          Your task: implement GitHub issue #${ISSUE_NUMBER}.
+
+          Issue title: ${ISSUE_TITLE}
+
+          Issue body:
+          ${ISSUE_BODY}
+
+          Follow these steps exactly:
+          1. Read CLAUDE.md and docs/architecture.md
+          2. Determine the correct branch prefix (feat/ or fix/) based on the issue type
+          3. Create and switch to a new branch: feat/${ISSUE_NUMBER}-<short-slug> or fix/${ISSUE_NUMBER}-<short-slug>
+          4. Implement everything described in the acceptance criteria
+          5. Install dependencies if needed (npm install or npm ci)
+          6. Run 'npm run check' and 'npm run lint' if those scripts exist — fix any errors
+          7. Commit all changes with a clear message referencing #${ISSUE_NUMBER}
+          8. Push the branch: git push origin <branch-name>
+          9. Open a PR using: gh pr create --title '<title>' --body 'Closes #${ISSUE_NUMBER}\n\n<description>' --repo ${REPO}
+
+          Important:
+          - Follow all conventions in CLAUDE.md
+          - Keep changes focused to what the issue describes
+          - Do not modify CLAUDE.md unless explicitly asked
+          " --dangerously-skip-permissions --allowedTools "Bash,Read,Write,Edit,Glob,Grep"
