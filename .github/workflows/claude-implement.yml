@@ -1,0 +1,36 @@
+name: Claude Code — Implement
+
+# Triggered when the `agent:implement` label is added to an issue.
+# Claude Code will read the issue, plan an implementation, create a branch, and open a PR.
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  implement:
+    name: Implement issue
+    if: github.event.label.name == 'agent:implement'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: anthropic/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            You have been assigned to implement GitHub issue #${{ github.event.issue.number }}.
+
+            Issue title: ${{ github.event.issue.title }}
+            Issue body:
+            ${{ github.event.issue.body }}
+
+            Follow the instructions in CLAUDE.md closely:
+            - Create a branch named `feat/${{ github.event.issue.number }}-<short-slug>` or `fix/${{ github.event.issue.number }}-<short-slug>`
+            - Implement the feature or fix described in the issue
+            - Run `npm run check` and `npm run lint` before committing (install deps first if needed)
+            - Open a PR with a clear description referencing the issue (`Closes #${{ github.event.issue.number }}`)
+            - Keep the change focused — one issue, one PR

@@ -1,0 +1,46 @@
+name: Feature Request
+description: Propose a new feature for FixedFlow
+labels: [feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the feature you want. Be specific — an agent will use this to implement it.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What do you want?
+      description: A clear description of the feature and why it's useful.
+      placeholder: "e.g. Add the ability to mark a service as paused without deleting it, so it doesn't count toward the monthly total while paused."
+    validations:
+      required: true
+
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: Expected behaviour
+      description: How should this work from the user's perspective?
+      placeholder: "e.g. A toggle on the service card. When paused, the service appears greyed out and its cost is excluded from the monthly total."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How do we know this is done? List specific, testable criteria.
+      placeholder: |
+        - [ ] User can toggle a service between active and paused
+        - [ ] Paused services are excluded from the monthly total
+        - [ ] Paused services are visually distinct in the UI
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Anything else the implementer should know — edge cases, constraints, references.
+    validations:
+      required: false

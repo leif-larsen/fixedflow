@@ -1,0 +1,33 @@
+name: Claude Code — Review PR
+
+# Automatically reviews every opened or updated PR.
+# Posts a code review as a PR comment.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    name: Review pull request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: anthropic/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Please review this pull request. Your review should:
+
+            1. Check correctness — does the implementation match the issue/PR description?
+            2. Check for security issues (XSS, SQL injection, hardcoded secrets, etc.)
+            3. Check for simplicity — is there unnecessary complexity?
+            4. Check that the code follows the conventions in CLAUDE.md
+            5. Check that tests cover the changed logic (if applicable)
+
+            Post non-blocking suggestions as regular comments.
+            Flag actual bugs or security issues clearly as blocking.
+            End your review with either an approval summary or a list of required changes.
