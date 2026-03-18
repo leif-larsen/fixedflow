@@ -25,14 +25,8 @@ jobs:
       - name: Install Claude Code CLI
         run: npm install -g @anthropic-ai/claude-code
 
-      - name: Get PR diff
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr.diff
-          echo "PR_DIFF<<EOF" >> $GITHUB_ENV
-          head -c 8000 /tmp/pr.diff >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+      - name: Write PR diff to file
+        run: git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr.diff
 
       - name: Review PR
         env:
@@ -50,8 +44,7 @@ jobs:
           PR #${PR_NUMBER}: ${PR_TITLE}
           PR description: ${PR_BODY}
 
-          Diff:
-          ${PR_DIFF}
+          The diff is at /tmp/pr.diff — read it with the Read tool before reviewing.
 
           Provide a thorough code review covering:
           1. Correctness — does the implementation match the PR description and issue?
