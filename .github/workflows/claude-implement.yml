@@ -43,6 +43,10 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           REPO: ${{ github.repository }}
         run: |
+          ISSUE_NUMBER="${ISSUE_NUMBER}"
+          ISSUE_TITLE="${ISSUE_TITLE}"
+          REPO="${REPO}"
+
           claude -p "
           You are the Claude Code agent for the FixedFlow project.
           Start by reading CLAUDE.md and docs/architecture.md for full project context and conventions.
@@ -57,16 +61,49 @@ jobs:
           Follow these steps exactly:
           1. Read CLAUDE.md and docs/architecture.md
           2. Determine the correct branch prefix (feat/ or fix/) based on the issue type
-          3. Create and switch to a new branch: feat/${ISSUE_NUMBER}-<short-slug> or fix/${ISSUE_NUMBER}-<short-slug>
+          3. Create and switch to a new branch named feat/${ISSUE_NUMBER}-<short-slug> or fix/${ISSUE_NUMBER}-<short-slug>
           4. Implement everything described in the acceptance criteria
           5. Install dependencies if needed (npm install or npm ci)
           6. Run 'npm run check' and 'npm run lint' if those scripts exist — fix any errors
-          7. Commit all changes with a clear message referencing #${ISSUE_NUMBER}
-          8. Push the branch: git push origin <branch-name>
-          9. Open a PR using: gh pr create --title '<title>' --body 'Closes #${ISSUE_NUMBER}\n\n<description>' --repo ${REPO}
+          7. Commit all changes with a clear message referencing the issue number
+          8. Push the branch with: git push origin HEAD
 
-          Important:
-          - Follow all conventions in CLAUDE.md
-          - Keep changes focused to what the issue describes
-          - Do not modify CLAUDE.md unless explicitly asked
+          IMPORTANT: Stop after step 8. Do NOT try to create the PR — a separate workflow step handles that.
+
+          Follow all conventions in CLAUDE.md. Do not modify CLAUDE.md unless explicitly asked.
           " --dangerously-skip-permissions --allowedTools "Bash,Read,Write,Edit,Glob,Grep"
+
+      - name: Open PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Find the branch Claude created for this issue (feat/N-* or fix/N-*)
+          BRANCH=$(git ls-remote --heads origin \
+            "refs/heads/feat/${ISSUE_NUMBER}-*" \
+            "refs/heads/fix/${ISSUE_NUMBER}-*" \
+            | head -1 | sed 's|.*refs/heads/||')
+
+          if [ -z "$BRANCH" ]; then
+            echo "No branch found for issue #${ISSUE_NUMBER} — skipping PR creation."
+            exit 0
+          fi
+
+          echo "Found branch: $BRANCH"
+
+          # Create PR only if one doesn't already exist for this branch
+          EXISTING=$(gh pr list --repo "$REPO" --head "$BRANCH" --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING already exists for $BRANCH — skipping."
+            exit 0
+          fi
+
+          gh pr create \
+            --repo "$REPO" \
+            --title "$ISSUE_TITLE" \
+            --body "Closes #${ISSUE_NUMBER}" \
+            --head "$BRANCH" \
+            --base main
