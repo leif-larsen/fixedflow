@@ -1,6 +1,6 @@
 name: Claude Code — Review PR
 
-# Automatically reviews every opened or updated PR.
+# Automatically reviews every opened or updated PR and submits a formal GitHub review.
 
 on:
   pull_request:
@@ -31,13 +31,11 @@ jobs:
       - name: Review PR
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
-          REPO: ${{ github.repository }}
         run: |
-          REVIEW=$(claude -p "
+          claude -p "
           You are reviewing a pull request for the FixedFlow project.
           Read CLAUDE.md for project conventions and standards.
 
@@ -56,7 +54,32 @@ jobs:
           Format your review as markdown.
           Mark non-blocking suggestions clearly as '(suggestion)'.
           Mark required changes clearly as '**Required:**'.
-          End with either '✅ Approved' or '🔄 Changes requested' and a one-line summary.
-          " --dangerously-skip-permissions --allowedTools "Read,Glob,Grep")
 
-          gh pr comment "${PR_NUMBER}" --repo "${REPO}" --body "${REVIEW}"
+          At the very end of your response, on its own line, write exactly one of:
+            VERDICT: APPROVE
+            VERDICT: REQUEST_CHANGES
+          " --dangerously-skip-permissions --allowedTools "Read,Glob,Grep" > /tmp/review-raw.txt
+
+          cat /tmp/review-raw.txt
+
+      - name: Submit formal review
+        env:
+          # Use GH_PAT if available (avoids self-review block), otherwise fall back to GITHUB_TOKEN
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Extract verdict
+          if grep -q "VERDICT: APPROVE" /tmp/review-raw.txt; then
+            VERDICT="approve"
+          else
+            VERDICT="request-changes"
+          fi
+
+          # Strip the verdict line from the review body
+          grep -v "^VERDICT:" /tmp/review-raw.txt > /tmp/review-body.md
+
+          echo "Submitting review with verdict: $VERDICT"
+          gh pr review "${PR_NUMBER}" --repo "${REPO}" \
+            --"${VERDICT}" \
+            --body-file /tmp/review-body.md
