@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8472:8472"
+    environment:
+      - PORT=8472
+      - DATABASE_URL=/app/data/fixedflow.db
+    volumes:
+      - fixedflow-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  fixedflow-data:
