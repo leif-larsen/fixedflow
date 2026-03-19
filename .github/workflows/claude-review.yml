@@ -117,6 +117,9 @@ jobs:
           git config user.email "claude-agent@users.noreply.github.com"
           # Use GH_PAT so the push triggers the pull_request synchronize event
           git remote set-url origin "https://x-access-token:${GH_PAT}@github.com/${REPO}.git"
+          # Checkout the actual PR branch — pull_request events check out a detached
+          # merge commit, so we need to switch to the real branch before committing
+          git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Fetch review comments
         if: steps.review.outputs.verdict == 'request-changes'
