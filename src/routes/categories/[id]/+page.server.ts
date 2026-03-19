@@ -28,6 +28,19 @@ export const load: PageServerLoad = async ({ params }) => {
 };
 
 export const actions: Actions = {
+	deleteService: async ({ request, params }) => {
+		const id = parseInt(params.id, 10);
+
+		const data = await request.formData();
+		const serviceId = parseInt((data.get('id') ?? '').toString(), 10);
+
+		if (!isNaN(serviceId)) {
+			await db.delete(services).where(eq(services.id, serviceId));
+		}
+
+		redirect(303, `/categories/${id}`);
+	},
+
 	create: async ({ request, params }) => {
 		const id = parseInt(params.id, 10);
 

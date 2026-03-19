@@ -45,6 +45,13 @@
 									href="/categories/{data.category.id}/services/{service.id}/edit"
 									class="text-sm text-blue-600 hover:underline"
 								>Edit</a>
+								<form method="POST" action="?/deleteService">
+									<input type="hidden" name="id" value={service.id} />
+									<button
+										type="submit"
+										class="text-sm text-red-600 hover:underline"
+									>Delete</button>
+								</form>
 							</div>
 						</li>
 					{/each}
