@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '$lib/db/index.js';
 import { categories } from '$lib/db/schema.js';
 import type { Actions, PageServerLoad } from './$types.js';
@@ -38,6 +39,19 @@ export const actions: Actions = {
 			icon: '',
 			createdAt: new Date().toISOString()
 		});
+
+		redirect(303, '/');
+	},
+
+	delete: async ({ request }) => {
+		const data = await request.formData();
+		const id = parseInt(String(data.get('id') ?? ''), 10);
+
+		if (!isNaN(id)) {
+			// Associated services are removed automatically via ON DELETE CASCADE
+			// (foreign_keys pragma is enabled in src/lib/db/index.ts)
+			await db.delete(categories).where(eq(categories.id, id));
+		}
 
 		redirect(303, '/');
 	}

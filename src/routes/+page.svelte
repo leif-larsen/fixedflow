@@ -22,7 +22,15 @@
 								class="w-5 h-5 rounded-full flex-shrink-0 border border-gray-200"
 								style="background-color: {category.color};"
 							></span>
-							<span class="text-gray-900 font-medium">{category.name}</span>
+							<span class="text-gray-900 font-medium flex-1">{category.name}</span>
+							<form method="POST" action="?/delete">
+								<input type="hidden" name="id" value={category.id} />
+								<button
+									type="submit"
+									class="text-gray-400 hover:text-red-600 transition-colors text-lg leading-none"
+									aria-label="Delete {category.name}"
+								>&#x2715;</button>
+							</form>
 						</li>
 					{/each}
 				</ul>
