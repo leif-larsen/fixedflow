@@ -48,6 +48,8 @@ export const actions: Actions = {
 		const id = parseInt((data.get('id') ?? '').toString(), 10);
 
 		if (!isNaN(id)) {
+			// Associated services are removed automatically via ON DELETE CASCADE
+			// (foreign_keys pragma is enabled in src/lib/db/index.ts)
 			await db.delete(categories).where(eq(categories.id, id));
 		}
 
