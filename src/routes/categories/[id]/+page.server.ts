@@ -60,7 +60,7 @@ export const actions: Actions = {
 			categoryId: id,
 			name,
 			amount,
-			currency: 'NOK',
+			currency: 'EUR',
 			frequency: frequency as 'monthly' | 'quarterly' | 'yearly',
 			billingMonth,
 			activeFrom,
