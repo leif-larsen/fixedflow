@@ -6,6 +6,9 @@ services:
     environment:
       - PORT=8472
       - DATABASE_URL=/app/data/fixedflow.db
+      # Set ORIGIN to your public URL (e.g. https://fixedflow.example.com) if you
+      # want to re-enable SvelteKit's CSRF origin check while behind a reverse proxy.
+      # - ORIGIN=https://your-tailscale-hostname
     volumes:
       - fixedflow-data:/app/data
     restart: unless-stopped
