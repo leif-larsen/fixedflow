@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '$lib/db/index.js';
 import { categories, services } from '$lib/db/schema.js';
+import { validateServiceForm } from '$lib/validateService.js';
 import type { Actions, PageServerLoad } from './$types.js';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -41,29 +42,13 @@ export const actions: Actions = {
 		const billingMonthRaw = (data.get('billingMonth') ?? '').toString().trim();
 		const activeFrom = (data.get('activeFrom') ?? '').toString().trim();
 
-		const errors: Record<string, string> = {};
-
-		if (!name) {
-			errors.name = 'Name is required.';
-		}
-
-		const amount = parseFloat(amountRaw);
-		if (!amountRaw || isNaN(amount) || amount <= 0) {
-			errors.amount = 'Amount must be a positive number.';
-		}
-
-		if (!['monthly', 'quarterly', 'yearly'].includes(frequency)) {
-			errors.frequency = 'Frequency must be monthly, quarterly, or yearly.';
-		}
-
-		const billingMonth = parseInt(billingMonthRaw, 10);
-		if (isNaN(billingMonth) || billingMonth < 1 || billingMonth > 12) {
-			errors.billingMonth = 'Billing month must be between 1 and 12.';
-		}
-
-		if (!activeFrom || isNaN(Date.parse(activeFrom))) {
-			errors.activeFrom = 'Active from must be a valid date.';
-		}
+		const { errors, amount, billingMonth } = validateServiceForm({
+			name,
+			amountRaw,
+			frequency,
+			billingMonthRaw,
+			activeFrom
+		});
 
 		if (Object.keys(errors).length > 0) {
 			return fail(422, { errors, name, amount: amountRaw, frequency, billingMonth: billingMonthRaw, activeFrom });
