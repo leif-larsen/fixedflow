@@ -20,6 +20,7 @@ export const load: PageServerLoad = async () => {
 			billingMonth: services.billingMonth,
 			activeFrom: services.activeFrom,
 			activeUntil: services.activeUntil,
+			active: services.active,
 			categoryId: categories.id,
 			categoryName: categories.name,
 			categoryColor: categories.color
@@ -28,7 +29,10 @@ export const load: PageServerLoad = async () => {
 		.innerJoin(categories, eq(services.categoryId, categories.id));
 
 	const activeServices = rows.filter(
-		(row) => row.activeFrom <= today && (row.activeUntil === null || row.activeUntil >= today)
+		(row) =>
+			row.active === 1 &&
+			row.activeFrom <= today &&
+			(row.activeUntil === null || row.activeUntil >= today)
 	);
 
 	type CategoryTotal = {

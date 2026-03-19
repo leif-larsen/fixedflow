@@ -21,6 +21,7 @@ export const services = sqliteTable('services', {
 	activeFrom: text('active_from').notNull(),
 	activeUntil: text('active_until'),
 	notes: text('notes'),
+	active: integer('active').notNull().default(1),
 	createdAt: text('created_at').notNull(),
 	updatedAt: text('updated_at').notNull()
 });
