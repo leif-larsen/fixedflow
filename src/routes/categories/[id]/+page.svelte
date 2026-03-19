@@ -41,6 +41,10 @@
 									{service.frequency}
 								</span>
 								<span class="text-sm text-gray-500">{months[service.billingMonth - 1]}</span>
+								<a
+									href="/categories/{data.category.id}/services/{service.id}/edit"
+									class="text-sm text-blue-600 hover:underline"
+								>Edit</a>
 							</div>
 						</li>
 					{/each}
