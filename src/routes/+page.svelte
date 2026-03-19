@@ -6,7 +6,15 @@
 
 <div class="min-h-screen bg-gray-50">
 	<div class="max-w-4xl mx-auto px-4 py-16">
-		<h1 class="text-4xl font-bold text-gray-900 mb-2">FixedFlow</h1>
+		<div class="flex items-center justify-between mb-2">
+			<h1 class="text-4xl font-bold text-gray-900">FixedFlow</h1>
+			<a
+				href="/dashboard"
+				class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+			>
+				Dashboard
+			</a>
+		</div>
 		<p class="text-lg text-gray-600 mb-10">Track your recurring costs, effortlessly.</p>
 
 		<section class="mb-12">
