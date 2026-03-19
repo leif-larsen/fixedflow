@@ -61,7 +61,13 @@ jobs:
 
           Format your review as markdown.
           Mark non-blocking suggestions clearly as '(suggestion)'.
-          Mark required changes clearly as '**Required:**'.
+          Mark blocking issues clearly as '**Required:**'.
+
+          Verdict rules — be strict about this:
+          - Use VERDICT: APPROVE if the code is correct and there are no blocking issues.
+            Suggestions alone are NOT a reason to request changes.
+          - Use VERDICT: REQUEST_CHANGES only if there is at least one item marked '**Required:**'
+            that must be fixed before the PR can be merged.
 
           At the very end of your response, on its own line, write exactly one of:
             VERDICT: APPROVE
@@ -148,6 +154,8 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           REPO: ${{ github.repository }}
         run: |
+          BEFORE=$(git rev-parse HEAD)
+
           claude -p "
           You are fixing issues raised in a code review for the FixedFlow project.
           Read CLAUDE.md for project conventions.
@@ -167,3 +175,12 @@ jobs:
           Do not make changes beyond what the review requested.
           Do not modify CLAUDE.md.
           " --dangerously-skip-permissions --allowedTools "Bash,Read,Write,Edit,Glob,Grep"
+
+          # If Claude made no changes (nothing to fix), push an empty commit so the
+          # review workflow re-triggers and can produce a fresh verdict.
+          AFTER=$(git rev-parse HEAD)
+          if [ "$BEFORE" = "$AFTER" ]; then
+            echo "No changes committed — pushing empty commit to re-trigger review."
+            git commit --allow-empty -m "chore: re-trigger review after no-op fix"
+            git push origin HEAD
+          fi
