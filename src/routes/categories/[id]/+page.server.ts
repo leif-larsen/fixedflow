@@ -1,5 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { db } from '$lib/db/index.js';
 import { categories, services } from '$lib/db/schema.js';
 import { validateServiceForm } from '$lib/validateService.js';
@@ -35,7 +35,7 @@ export const actions: Actions = {
 		const serviceId = parseInt((data.get('id') ?? '').toString(), 10);
 
 		if (!isNaN(serviceId)) {
-			await db.delete(services).where(eq(services.id, serviceId));
+			await db.delete(services).where(and(eq(services.id, serviceId), eq(services.categoryId, id)));
 		}
 
 		redirect(303, `/categories/${id}`);
