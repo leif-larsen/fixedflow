@@ -31,6 +31,11 @@
 								style="background-color: {category.color};"
 							></span>
 							<a href="/categories/{category.id}" class="text-gray-900 font-medium flex-1 hover:underline">{category.name}</a>
+							<a
+								href="/categories/{category.id}/edit"
+								class="text-gray-400 hover:text-blue-600 transition-colors text-sm"
+								aria-label="Edit {category.name}"
+							>&#x270E;</a>
 							<form method="POST" action="?/delete">
 								<input type="hidden" name="id" value={category.id} />
 								<button
