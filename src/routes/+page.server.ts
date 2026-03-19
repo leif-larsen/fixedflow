@@ -45,7 +45,7 @@ export const actions: Actions = {
 
 	delete: async ({ request }) => {
 		const data = await request.formData();
-		const id = parseInt((data.get('id') ?? '').toString(), 10);
+		const id = parseInt(String(data.get('id') ?? ''), 10);
 
 		if (!isNaN(id)) {
 			// Associated services are removed automatically via ON DELETE CASCADE
