@@ -6,13 +6,11 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		adapter: adapter(),
-		// Allow form submissions from any origin so the app works behind a reverse
-		// proxy (e.g. Tailscale) where the Origin header may differ from the
-		// server's perceived host. For a known public URL, set the ORIGIN env var
-		// in docker-compose instead and remove this override.
-		csrf: {
-			trustedOrigins: ['*']
-		}
+		// When ORIGIN is set (e.g. in docker-compose), SvelteKit's adapter uses it
+		// to answer CSRF origin checks correctly behind a reverse proxy. When it is
+		// not set we disable the origin check so the app still works in plain
+		// reverse-proxy setups where the header may differ from the perceived host.
+		csrf: process.env.ORIGIN ? {} : { trustedOrigins: ['*'] }
 	}
 };
 
