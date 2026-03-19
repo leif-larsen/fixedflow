@@ -33,9 +33,12 @@
 			{:else}
 				<ul class="space-y-2">
 					{#each data.services as service (service.id)}
-						<li class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-100">
+						<li class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-100 {service.active === 0 ? 'opacity-50' : ''}">
 							<div class="flex items-center gap-3">
 								<span class="text-gray-900 font-medium flex-1">{service.name}</span>
+								{#if service.active === 0}
+									<span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-500">Paused</span>
+								{/if}
 								<span class="text-gray-700 font-mono">{formatCurrency(service.amount)}</span>
 								<span class="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700 capitalize">
 									{service.frequency}
@@ -45,6 +48,14 @@
 									href="/categories/{data.category.id}/services/{service.id}/edit"
 									class="text-sm text-blue-600 hover:underline"
 								>Edit</a>
+								<form method="POST" action="?/toggleActive">
+									<input type="hidden" name="id" value={service.id} />
+									<input type="hidden" name="active" value={service.active} />
+									<button
+										type="submit"
+										class="text-sm {service.active === 1 ? 'text-yellow-600 hover:text-yellow-800' : 'text-green-600 hover:text-green-800'} hover:underline"
+									>{service.active === 1 ? 'Pause' : 'Resume'}</button>
+								</form>
 								<form method="POST" action="?/deleteService">
 									<input type="hidden" name="id" value={service.id} />
 									<button

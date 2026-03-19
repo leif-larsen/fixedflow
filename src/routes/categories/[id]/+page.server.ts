@@ -41,6 +41,23 @@ export const actions: Actions = {
 		redirect(303, `/categories/${id}`);
 	},
 
+	toggleActive: async ({ request, params }) => {
+		const id = parseInt(params.id, 10);
+
+		const data = await request.formData();
+		const serviceId = parseInt((data.get('id') ?? '').toString(), 10);
+		const currentActive = parseInt((data.get('active') ?? '1').toString(), 10);
+
+		if (!isNaN(serviceId)) {
+			await db
+				.update(services)
+				.set({ active: currentActive === 1 ? 0 : 1, updatedAt: new Date().toISOString() })
+				.where(and(eq(services.id, serviceId), eq(services.categoryId, id)));
+		}
+
+		redirect(303, `/categories/${id}`);
+	},
+
 	create: async ({ request, params }) => {
 		const id = parseInt(params.id, 10);
 
