@@ -22,7 +22,7 @@
 								class="w-5 h-5 rounded-full flex-shrink-0 border border-gray-200"
 								style="background-color: {category.color};"
 							></span>
-							<span class="text-gray-900 font-medium flex-1">{category.name}</span>
+							<a href="/categories/{category.id}" class="text-gray-900 font-medium flex-1 hover:underline">{category.name}</a>
 							<form method="POST" action="?/delete">
 								<input type="hidden" name="id" value={category.id} />
 								<button
