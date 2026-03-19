@@ -64,8 +64,11 @@ jobs:
 
       - name: Submit formal review
         env:
-          # Use GH_PAT if available (avoids self-review block), otherwise fall back to GITHUB_TOKEN
-          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          # Must use GITHUB_TOKEN (the Actions bot), NOT GH_PAT.
+          # The PR is created by the user (via GH_PAT), so the bot is a different
+          # actor and is allowed to approve or request changes. Using GH_PAT here
+          # would cause a "can't review your own PR" error.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
