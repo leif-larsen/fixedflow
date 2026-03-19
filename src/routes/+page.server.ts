@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
 import { db } from '$lib/db/index.js';
 import { categories } from '$lib/db/schema.js';
 import type { Actions, PageServerLoad } from './$types.js';
@@ -38,6 +39,17 @@ export const actions: Actions = {
 			icon: '',
 			createdAt: new Date().toISOString()
 		});
+
+		redirect(303, '/');
+	},
+
+	delete: async ({ request }) => {
+		const data = await request.formData();
+		const id = parseInt((data.get('id') ?? '').toString(), 10);
+
+		if (!isNaN(id)) {
+			await db.delete(categories).where(eq(categories.id, id));
+		}
 
 		redirect(303, '/');
 	}
