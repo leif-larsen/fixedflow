@@ -6,50 +6,31 @@
 
 <div class="min-h-screen bg-gray-50">
 	<div class="max-w-4xl mx-auto px-4 py-16">
-		<div class="flex items-center justify-between mb-2">
-			<h1 class="text-4xl font-bold text-gray-900">FixedFlow</h1>
-			<div class="flex gap-2">
-				<a
-					href="/people"
-					class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
-				>
-					People
-				</a>
-				<a
-					href="/dashboard"
-					class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-				>
-					Dashboard
-				</a>
-			</div>
-		</div>
-		<p class="text-lg text-gray-600 mb-10">Track your recurring costs, effortlessly.</p>
+		<a href="/" class="text-sm text-blue-600 hover:underline mb-6 inline-block">&larr; Back to home</a>
+
+		<h1 class="text-4xl font-bold text-gray-900 mb-2">People</h1>
+		<p class="text-lg text-gray-600 mb-10">Manage household members and assign services to them.</p>
 
 		<section class="mb-12">
-			<h2 class="text-xl font-semibold text-gray-800 mb-4">Categories</h2>
+			<h2 class="text-xl font-semibold text-gray-800 mb-4">Members</h2>
 
-			{#if data.categories.length === 0}
-				<p class="text-gray-500 italic">No categories yet — add one below to get started.</p>
+			{#if data.people.length === 0}
+				<p class="text-gray-500 italic">No people yet — add one below to get started.</p>
 			{:else}
 				<ul class="space-y-2">
-					{#each data.categories as category (category.id)}
+					{#each data.people as person (person.id)}
 						<li class="flex items-center gap-3 bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-100">
 							<span
 								class="w-5 h-5 rounded-full flex-shrink-0 border border-gray-200"
-								style="background-color: {category.color};"
+								style="background-color: {person.color};"
 							></span>
-							<a href="/categories/{category.id}" class="text-gray-900 font-medium flex-1 hover:underline">{category.name}</a>
-							<a
-								href="/categories/{category.id}/edit"
-								class="text-gray-400 hover:text-blue-600 transition-colors text-sm"
-								aria-label="Edit {category.name}"
-							>&#x270E;</a>
+							<span class="text-gray-900 font-medium flex-1">{person.name}</span>
 							<form method="POST" action="?/delete">
-								<input type="hidden" name="id" value={category.id} />
+								<input type="hidden" name="id" value={person.id} />
 								<button
 									type="submit"
 									class="text-gray-400 hover:text-red-600 transition-colors text-lg leading-none"
-									aria-label="Delete {category.name}"
+									aria-label="Delete {person.name}"
 								>&#x2715;</button>
 							</form>
 						</li>
@@ -59,14 +40,24 @@
 		</section>
 
 		<section>
-			<h2 class="text-xl font-semibold text-gray-800 mb-4">Add a category</h2>
+			<h2 class="text-xl font-semibold text-gray-800 mb-4">Add a person</h2>
+
+			{#if form?.errors && Object.keys(form.errors).length > 0}
+				<div class="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
+					<ul class="list-disc list-inside text-red-600 text-sm">
+						{#each Object.values(form.errors) as err}
+							<li>{err}</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 
 			<form method="POST" action="?/create" class="flex flex-col sm:flex-row gap-3 items-start">
 				<div class="flex flex-col gap-1 flex-1">
 					<input
 						type="text"
 						name="name"
-						placeholder="Category name"
+						placeholder="Name"
 						value={form?.name ?? ''}
 						maxlength="50"
 						class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
@@ -83,9 +74,6 @@
 						value={form?.color ?? '#6366f1'}
 						class="h-10 w-14 cursor-pointer rounded-md border border-gray-300 p-1"
 					/>
-					{#if form?.errors?.color}
-						<p class="text-red-600 text-sm">{form.errors.color}</p>
-					{/if}
 				</div>
 
 				<button

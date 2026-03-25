@@ -1,7 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { db } from '$lib/db/index.js';
-import { categories, services } from '$lib/db/schema.js';
+import { categories, people, servicePeople, services } from '$lib/db/schema.js';
 import { validateServiceForm } from '$lib/validateService.js';
 import type { Actions, PageServerLoad } from './$types.js';
 
@@ -25,7 +25,16 @@ export const load: PageServerLoad = async ({ params }) => {
 		error(404, 'Not found');
 	}
 
-	return { category, service };
+	const allPeople = await db.select().from(people).orderBy(asc(people.name));
+
+	const assignments = await db
+		.select()
+		.from(servicePeople)
+		.where(eq(servicePeople.serviceId, serviceId));
+
+	const assignedPersonIds = assignments.map((a) => a.personId);
+
+	return { category, service, people: allPeople, assignedPersonIds };
 };
 
 export const actions: Actions = {
@@ -43,6 +52,10 @@ export const actions: Actions = {
 		const frequency = (data.get('frequency') ?? '').toString().trim();
 		const billingMonthRaw = (data.get('billingMonth') ?? '').toString().trim();
 		const activeFrom = (data.get('activeFrom') ?? '').toString().trim();
+		const personIds = data
+			.getAll('personIds')
+			.map((v) => parseInt(v.toString(), 10))
+			.filter((n) => !isNaN(n));
 
 		const { errors, amount, billingMonth } = validateServiceForm({
 			name,
@@ -53,7 +66,15 @@ export const actions: Actions = {
 		});
 
 		if (Object.keys(errors).length > 0) {
-			return fail(422, { errors, name, amount: amountRaw, frequency, billingMonth: billingMonthRaw, activeFrom });
+			return fail(422, {
+				errors,
+				name,
+				amount: amountRaw,
+				frequency,
+				billingMonth: billingMonthRaw,
+				activeFrom,
+				personIds
+			});
 		}
 
 		const [existing] = await db.select().from(services).where(eq(services.id, serviceId));
@@ -73,6 +94,14 @@ export const actions: Actions = {
 				updatedAt: new Date().toISOString()
 			})
 			.where(eq(services.id, serviceId));
+
+		// Replace people assignments
+		await db.delete(servicePeople).where(eq(servicePeople.serviceId, serviceId));
+		if (personIds.length > 0) {
+			await db
+				.insert(servicePeople)
+				.values(personIds.map((personId) => ({ serviceId, personId })));
+		}
 
 		redirect(303, `/categories/${categoryId}`);
 	}
