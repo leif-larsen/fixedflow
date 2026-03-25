@@ -7,6 +7,11 @@
 		'January', 'February', 'March', 'April', 'May', 'June',
 		'July', 'August', 'September', 'October', 'November', 'December'
 	];
+
+	function isPersonChecked(personId: number): boolean {
+		if (form?.personIds !== undefined) return form.personIds.includes(personId);
+		return data.assignedPersonIds.includes(personId);
+	}
 </script>
 
 <div class="min-h-screen bg-gray-50">
@@ -114,6 +119,30 @@
 					{/if}
 				</div>
 			</div>
+
+			{#if data.people.length > 0}
+				<div class="flex flex-col gap-2">
+					<span class="text-sm font-medium text-gray-700">Assign to</span>
+					<div class="flex flex-wrap gap-3">
+						{#each data.people as person (person.id)}
+							<label class="flex items-center gap-2 cursor-pointer">
+								<input
+									type="checkbox"
+									name="personIds"
+									value={person.id}
+									checked={isPersonChecked(person.id)}
+									class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+								/>
+								<span
+									class="w-3 h-3 rounded-full flex-shrink-0"
+									style="background-color: {person.color};"
+								></span>
+								<span class="text-sm text-gray-700">{person.name}</span>
+							</label>
+						{/each}
+					</div>
+				</div>
+			{/if}
 
 			<div class="flex gap-3">
 				<button

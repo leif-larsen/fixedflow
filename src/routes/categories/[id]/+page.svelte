@@ -11,6 +11,14 @@
 	function formatCurrency(amount: number): string {
 		return new Intl.NumberFormat('no-NO', { style: 'currency', currency: 'NOK' }).format(amount);
 	}
+
+	function personName(personId: number): string {
+		return data.people.find((p) => p.id === personId)?.name ?? '';
+	}
+
+	function personColor(personId: number): string {
+		return data.people.find((p) => p.id === personId)?.color ?? '#ccc';
+	}
 </script>
 
 <div class="min-h-screen bg-gray-50">
@@ -38,6 +46,17 @@
 								<span class="text-gray-900 font-medium flex-1">{service.name}</span>
 								{#if service.active === 0}
 									<span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-500">Paused</span>
+								{/if}
+								{#if service.personIds.length > 0}
+									<span class="flex items-center gap-1">
+										{#each service.personIds as pid}
+											<span
+												class="w-4 h-4 rounded-full border border-white"
+												style="background-color: {personColor(pid)};"
+												title={personName(pid)}
+											></span>
+										{/each}
+									</span>
 								{/if}
 								<span class="text-gray-700 font-mono">{formatCurrency(service.amount)}</span>
 								<span class="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-700 capitalize">
@@ -166,6 +185,30 @@
 						{/if}
 					</div>
 				</div>
+
+				{#if data.people.length > 0}
+					<div class="flex flex-col gap-2">
+						<span class="text-sm font-medium text-gray-700">Assign to</span>
+						<div class="flex flex-wrap gap-3">
+							{#each data.people as person (person.id)}
+								<label class="flex items-center gap-2 cursor-pointer">
+									<input
+										type="checkbox"
+										name="personIds"
+										value={person.id}
+										checked={form?.personIds?.includes(person.id) ?? false}
+										class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+									/>
+									<span
+										class="w-3 h-3 rounded-full flex-shrink-0"
+										style="background-color: {person.color};"
+									></span>
+									<span class="text-sm text-gray-700">{person.name}</span>
+								</label>
+							{/each}
+						</div>
+					</div>
+				{/if}
 
 				<div>
 					<button

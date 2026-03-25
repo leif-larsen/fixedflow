@@ -43,6 +43,24 @@
 								<span class="text-sm font-semibold text-gray-700">Total</span>
 								<span class="font-mono font-bold text-gray-900 tabular-nums">{formatCurrency(monthData.total)}</span>
 							</div>
+
+							{#if data.hasPeople && monthData.byPerson.length > 0}
+								<div class="mt-3 pt-3 border-t border-gray-100">
+									<p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Per person</p>
+									<ul class="space-y-1.5">
+										{#each monthData.byPerson as person (person.personId)}
+											<li class="flex items-center gap-2 text-sm">
+												<span
+													class="w-3 h-3 rounded-full flex-shrink-0"
+													style="background-color: {person.personColor};"
+												></span>
+												<span class="flex-1 text-gray-700 truncate">{person.personName}</span>
+												<span class="font-mono text-gray-900 tabular-nums">{formatCurrency(person.total)}</span>
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{/if}
 						{/if}
 					</div>
 				</div>
